@@ -74,46 +74,57 @@ impl RunMode {
 
 /// Bootloader update state, used with `get_update_state` / `set_update_state`.
 ///
-/// Maps to `RECOVERY_STATUS` in SWUpdate.
+/// Maps to `update_state_t` in SWUpdate (state.h). These use ASCII character
+/// values on the wire (`'0'` through `'7'`), stored as single-character strings
+/// in the bootloader environment (e.g., `ustate=1` in grub.env).
+///
+/// Not to be confused with `RECOVERY_STATUS` which is used in progress messages.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UpdateState {
-    Idle,
-    Start,
-    Run,
-    Success,
-    Failure,
-    Download,
-    Done,
-    Subprocess,
-    Progress,
+    /// `STATE_OK` — no update pending, system is confirmed good.
+    Ok,
+    /// `STATE_INSTALLED` — new image installed, awaiting validation.
+    Installed,
+    /// `STATE_TESTING` — currently running self-test.
+    Testing,
+    /// `STATE_FAILED` — update failed.
+    Failed,
+    /// `STATE_NOT_AVAILABLE` — no state information available.
+    NotAvailable,
+    /// `STATE_ERROR` — error during update.
+    Error,
+    /// `STATE_WAIT` — waiting for update.
+    Wait,
+    /// `STATE_IN_PROGRESS` — update in progress.
+    InProgress,
 }
 
 impl UpdateState {
+    /// Convert to the wire representation (ASCII character as i32).
     pub(crate) fn to_wire(self) -> i32 {
         match self {
-            Self::Idle => 0,
-            Self::Start => 1,
-            Self::Run => 2,
-            Self::Success => 3,
-            Self::Failure => 4,
-            Self::Download => 5,
-            Self::Done => 6,
-            Self::Subprocess => 7,
-            Self::Progress => 8,
+            Self::Ok => b'0' as i32,
+            Self::Installed => b'1' as i32,
+            Self::Testing => b'2' as i32,
+            Self::Failed => b'3' as i32,
+            Self::NotAvailable => b'4' as i32,
+            Self::Error => b'5' as i32,
+            Self::Wait => b'6' as i32,
+            Self::InProgress => b'7' as i32,
         }
     }
 
+    /// Parse from wire representation (ASCII character as i32).
     pub(crate) fn from_wire(v: i32) -> Option<Self> {
         match v {
-            0 => Some(Self::Idle),
-            1 => Some(Self::Start),
-            2 => Some(Self::Run),
-            3 => Some(Self::Success),
-            4 => Some(Self::Failure),
-            5 => Some(Self::Download),
-            6 => Some(Self::Done),
-            7 => Some(Self::Subprocess),
-            8 => Some(Self::Progress),
+            v if v == b'0' as i32 => Some(Self::Ok),
+            v if v == b'1' as i32 => Some(Self::Installed),
+            v if v == b'2' as i32 => Some(Self::Testing),
+            v if v == b'3' as i32 => Some(Self::Failed),
+            v if v == b'4' as i32 => Some(Self::NotAvailable),
+            v if v == b'5' as i32 => Some(Self::Error),
+            v if v == b'6' as i32 => Some(Self::Wait),
+            v if v == b'7' as i32 => Some(Self::InProgress),
             _ => None,
         }
     }
@@ -323,11 +334,45 @@ impl InstallRequest {
 // Response types for query operations
 // ---------------------------------------------------------------------------
 
+/// Recovery status, used in `get_status()` responses.
+///
+/// Maps to `RECOVERY_STATUS` in SWUpdate (swupdate_status.h). Not to be
+/// confused with [`UpdateState`] which maps to `update_state_t`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecoveryStatus {
+    Idle,
+    Start,
+    Run,
+    Success,
+    Failure,
+    Download,
+    Done,
+    Subprocess,
+    Progress,
+}
+
+impl RecoveryStatus {
+    pub(crate) fn from_wire(v: i32) -> Option<Self> {
+        match v {
+            0 => Some(Self::Idle),
+            1 => Some(Self::Start),
+            2 => Some(Self::Run),
+            3 => Some(Self::Success),
+            4 => Some(Self::Failure),
+            5 => Some(Self::Download),
+            6 => Some(Self::Done),
+            7 => Some(Self::Subprocess),
+            8 => Some(Self::Progress),
+            _ => None,
+        }
+    }
+}
+
 /// Current update status returned by `get_status()`.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateStatus {
-    pub current: UpdateState,
-    pub last_result: UpdateState,
+    pub current: RecoveryStatus,
+    pub last_result: RecoveryStatus,
     pub error: i32,
     pub description: String,
 }
@@ -415,15 +460,14 @@ mod tests {
     #[test]
     fn update_state_roundtrip() {
         for state in [
-            UpdateState::Idle,
-            UpdateState::Start,
-            UpdateState::Run,
-            UpdateState::Success,
-            UpdateState::Failure,
-            UpdateState::Download,
-            UpdateState::Done,
-            UpdateState::Subprocess,
-            UpdateState::Progress,
+            UpdateState::Ok,
+            UpdateState::Installed,
+            UpdateState::Testing,
+            UpdateState::Failed,
+            UpdateState::NotAvailable,
+            UpdateState::Error,
+            UpdateState::Wait,
+            UpdateState::InProgress,
         ] {
             assert_eq!(UpdateState::from_wire(state.to_wire()), Some(state));
         }
