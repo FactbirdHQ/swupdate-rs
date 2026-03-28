@@ -8,7 +8,8 @@ use tracing::{debug, info};
 use crate::error::{Error, Result};
 use crate::socket::SocketConfig;
 use crate::types::{
-    HwRevision, InstallRequest, Source, SubprocessCmd, SwupdateVar, UpdateState, UpdateStatus,
+    HwRevision, InstallRequest, RecoveryStatus, Source, SubprocessCmd, SwupdateVar, UpdateState,
+    UpdateStatus,
 };
 use crate::wire::{self, ipc_message_from_bytes, ipc_message_to_bytes, MsgType, RawIpcMessage};
 
@@ -102,9 +103,9 @@ impl ControlClient {
             )
         };
 
-        let current = UpdateState::from_wire(current)
+        let current = RecoveryStatus::from_wire(current)
             .ok_or_else(|| Error::Protocol(format!("invalid status: {current}")))?;
-        let last_result = UpdateState::from_wire(last_result)
+        let last_result = RecoveryStatus::from_wire(last_result)
             .ok_or_else(|| Error::Protocol(format!("invalid last_result: {last_result}")))?;
 
         Ok(UpdateStatus {

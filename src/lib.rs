@@ -63,6 +63,6 @@ pub use socket::SocketConfig;
 // ProgressClient is public (for the receive() API) but only constructable
 // through Installation::progress() — not independently.
 pub use types::{
-    HwRevision, InstallRequest, ProgressEvent, RunMode, Source, SubprocessCmd, SwupdateVar,
-    UpdateState, UpdateStatus,
+    HwRevision, InstallRequest, ProgressEvent, RecoveryStatus, RunMode, Source, SubprocessCmd,
+    SwupdateVar, UpdateState, UpdateStatus,
 };
