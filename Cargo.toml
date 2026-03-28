@@ -1,0 +1,20 @@
+[package]
+name = "swupdate-ipc"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+license = "MIT OR Apache-2.0"
+description = "Async Rust client for SWUpdate's IPC interface (control + progress sockets)"
+repository = "https://github.com/FactbirdHQ/swupdate-rs"
+keywords = ["swupdate", "ipc", "embedded", "ota", "firmware"]
+categories = ["embedded", "os::linux-apis"]
+
+[dependencies]
+thiserror = "2"
+tokio = { version = "1", features = ["fs", "io-util", "net", "time"] }
+tracing = "0.1"
+zerocopy = { version = "0.8", features = ["derive"] }
+
+[dev-dependencies]
+cc = "1"
+tokio = { version = "1", features = ["full"] }
