@@ -20,6 +20,7 @@ jobs:
           components: rustfmt, clippy
       - run: cargo fmt --check
       - run: cargo clippy --all-targets
+      - run: cargo clippy --all-targets --features cli
       - run: cargo test
       - run: cargo doc --no-deps
 

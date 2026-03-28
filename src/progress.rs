@@ -23,8 +23,11 @@ pub struct ProgressClient {
 }
 
 impl ProgressClient {
-    /// Connect and perform the handshake.
-    pub(crate) async fn connect(config: &SocketConfig) -> Result<Self> {
+    /// Connect to the progress socket and perform the handshake.
+    ///
+    /// Typically created via [`Installation::progress()`](crate::Installation::progress),
+    /// but can also be constructed directly for standalone monitoring.
+    pub async fn connect(config: &SocketConfig) -> Result<Self> {
         let stream = config.connect_progress().await?;
         debug!(path = %config.progress_socket_path().display(), "Connected to progress socket");
 
