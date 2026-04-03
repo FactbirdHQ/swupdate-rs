@@ -9,8 +9,8 @@ use crate::error::{Error, Result};
 use crate::socket::SocketConfig;
 use crate::types::ProgressEvent;
 use crate::wire::{
-    ProgressLayout, RawProgressAck, RawProgressMsg, RawProgressMsgUnpacked,
-    PROGRESS_API_VERSION, PROGRESS_CONNECT_ACK_MAGIC,
+    ProgressLayout, RawProgressAck, RawProgressMsg, RawProgressMsgUnpacked, PROGRESS_API_VERSION,
+    PROGRESS_CONNECT_ACK_MAGIC,
 };
 
 /// Handle for receiving progress events from SWUpdate.
@@ -207,10 +207,7 @@ mod tests {
 
     #[test]
     fn parse_version_no_patch() {
-        assert_eq!(
-            parse_swupdate_version("SWUpdate v2025.05"),
-            Some((2025, 5))
-        );
+        assert_eq!(parse_swupdate_version("SWUpdate v2025.05"), Some((2025, 5)));
     }
 
     #[test]

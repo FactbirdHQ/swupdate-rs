@@ -52,7 +52,10 @@ fn compile_c_harness(variant: &str) -> PathBuf {
         .status()
         .expect("failed to compile C test harness — is `cc` installed?");
 
-    assert!(status.success(), "C compilation failed for variant {variant}");
+    assert!(
+        status.success(),
+        "C compilation failed for variant {variant}"
+    );
     binary
 }
 
@@ -112,17 +115,72 @@ fn progress_msg_packed_layout_matches_c() {
     );
 
     use swupdate_ipc::wire::RawProgressMsg;
-    check_offset!(layout, RawProgressMsg, apiversion, "offsetof_progress_msg_apiversion");
-    check_offset!(layout, RawProgressMsg, status, "offsetof_progress_msg_status");
-    check_offset!(layout, RawProgressMsg, dwl_percent, "offsetof_progress_msg_dwl_percent");
-    check_offset!(layout, RawProgressMsg, dwl_bytes, "offsetof_progress_msg_dwl_bytes");
-    check_offset!(layout, RawProgressMsg, nsteps, "offsetof_progress_msg_nsteps");
-    check_offset!(layout, RawProgressMsg, cur_step, "offsetof_progress_msg_cur_step");
-    check_offset!(layout, RawProgressMsg, cur_percent, "offsetof_progress_msg_cur_percent");
-    check_offset!(layout, RawProgressMsg, cur_image, "offsetof_progress_msg_cur_image");
-    check_offset!(layout, RawProgressMsg, hnd_name, "offsetof_progress_msg_hnd_name");
-    check_offset!(layout, RawProgressMsg, source, "offsetof_progress_msg_source");
-    check_offset!(layout, RawProgressMsg, infolen, "offsetof_progress_msg_infolen");
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        apiversion,
+        "offsetof_progress_msg_apiversion"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        status,
+        "offsetof_progress_msg_status"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        dwl_percent,
+        "offsetof_progress_msg_dwl_percent"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        dwl_bytes,
+        "offsetof_progress_msg_dwl_bytes"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        nsteps,
+        "offsetof_progress_msg_nsteps"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        cur_step,
+        "offsetof_progress_msg_cur_step"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        cur_percent,
+        "offsetof_progress_msg_cur_percent"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        cur_image,
+        "offsetof_progress_msg_cur_image"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        hnd_name,
+        "offsetof_progress_msg_hnd_name"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        source,
+        "offsetof_progress_msg_source"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsg,
+        infolen,
+        "offsetof_progress_msg_infolen"
+    );
     check_offset!(layout, RawProgressMsg, info, "offsetof_progress_msg_info");
 }
 
@@ -150,7 +208,10 @@ fn progress_msg_packed_roundtrip_with_c() {
     assert_eq!({ msg.nsteps }, 2);
     assert_eq!({ msg.cur_step }, 2);
     assert_eq!({ msg.cur_percent }, 100);
-    assert_eq!(swupdate_ipc::wire::cstr_from_bytes(&msg.cur_image), "rootfs.img");
+    assert_eq!(
+        swupdate_ipc::wire::cstr_from_bytes(&msg.cur_image),
+        "rootfs.img"
+    );
     assert_eq!(swupdate_ipc::wire::cstr_from_bytes(&msg.hnd_name), "raw");
     assert_eq!({ msg.source }, 4); // SOURCE_LOCAL
     assert_eq!({ msg.infolen }, 4);
@@ -177,18 +238,78 @@ fn progress_msg_unpacked_layout_matches_c() {
     );
 
     use swupdate_ipc::wire::RawProgressMsgUnpacked;
-    check_offset!(layout, RawProgressMsgUnpacked, apiversion, "offsetof_progress_msg_apiversion");
-    check_offset!(layout, RawProgressMsgUnpacked, status, "offsetof_progress_msg_status");
-    check_offset!(layout, RawProgressMsgUnpacked, dwl_percent, "offsetof_progress_msg_dwl_percent");
-    check_offset!(layout, RawProgressMsgUnpacked, dwl_bytes, "offsetof_progress_msg_dwl_bytes");
-    check_offset!(layout, RawProgressMsgUnpacked, nsteps, "offsetof_progress_msg_nsteps");
-    check_offset!(layout, RawProgressMsgUnpacked, cur_step, "offsetof_progress_msg_cur_step");
-    check_offset!(layout, RawProgressMsgUnpacked, cur_percent, "offsetof_progress_msg_cur_percent");
-    check_offset!(layout, RawProgressMsgUnpacked, cur_image, "offsetof_progress_msg_cur_image");
-    check_offset!(layout, RawProgressMsgUnpacked, hnd_name, "offsetof_progress_msg_hnd_name");
-    check_offset!(layout, RawProgressMsgUnpacked, source, "offsetof_progress_msg_source");
-    check_offset!(layout, RawProgressMsgUnpacked, infolen, "offsetof_progress_msg_infolen");
-    check_offset!(layout, RawProgressMsgUnpacked, info, "offsetof_progress_msg_info");
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        apiversion,
+        "offsetof_progress_msg_apiversion"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        status,
+        "offsetof_progress_msg_status"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        dwl_percent,
+        "offsetof_progress_msg_dwl_percent"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        dwl_bytes,
+        "offsetof_progress_msg_dwl_bytes"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        nsteps,
+        "offsetof_progress_msg_nsteps"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        cur_step,
+        "offsetof_progress_msg_cur_step"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        cur_percent,
+        "offsetof_progress_msg_cur_percent"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        cur_image,
+        "offsetof_progress_msg_cur_image"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        hnd_name,
+        "offsetof_progress_msg_hnd_name"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        source,
+        "offsetof_progress_msg_source"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        infolen,
+        "offsetof_progress_msg_infolen"
+    );
+    check_offset!(
+        layout,
+        RawProgressMsgUnpacked,
+        info,
+        "offsetof_progress_msg_info"
+    );
 }
 
 #[test]
@@ -215,7 +336,10 @@ fn progress_msg_unpacked_roundtrip_with_c() {
     assert_eq!(msg.nsteps, 2);
     assert_eq!(msg.cur_step, 2);
     assert_eq!(msg.cur_percent, 100);
-    assert_eq!(swupdate_ipc::wire::cstr_from_bytes(&msg.cur_image), "rootfs.img");
+    assert_eq!(
+        swupdate_ipc::wire::cstr_from_bytes(&msg.cur_image),
+        "rootfs.img"
+    );
     assert_eq!(swupdate_ipc::wire::cstr_from_bytes(&msg.hnd_name), "raw");
     assert_eq!(msg.source, 4); // SOURCE_LOCAL
     assert_eq!(msg.infolen, 4);
@@ -279,14 +403,54 @@ fn swupdate_request_layout_matches_c() {
     );
 
     use swupdate_ipc::wire::RawSwupdateRequest;
-    check_offset!(layout, RawSwupdateRequest, apiversion, "offsetof_swupdate_request_apiversion");
-    check_offset!(layout, RawSwupdateRequest, source, "offsetof_swupdate_request_source");
-    check_offset!(layout, RawSwupdateRequest, dry_run, "offsetof_swupdate_request_dry_run");
-    check_offset!(layout, RawSwupdateRequest, len, "offsetof_swupdate_request_len");
-    check_offset!(layout, RawSwupdateRequest, info, "offsetof_swupdate_request_info");
-    check_offset!(layout, RawSwupdateRequest, software_set, "offsetof_swupdate_request_software_set");
-    check_offset!(layout, RawSwupdateRequest, running_mode, "offsetof_swupdate_request_running_mode");
-    check_offset!(layout, RawSwupdateRequest, disable_store_swu, "offsetof_swupdate_request_disable_store_swu");
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        apiversion,
+        "offsetof_swupdate_request_apiversion"
+    );
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        source,
+        "offsetof_swupdate_request_source"
+    );
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        dry_run,
+        "offsetof_swupdate_request_dry_run"
+    );
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        len,
+        "offsetof_swupdate_request_len"
+    );
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        info,
+        "offsetof_swupdate_request_info"
+    );
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        software_set,
+        "offsetof_swupdate_request_software_set"
+    );
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        running_mode,
+        "offsetof_swupdate_request_running_mode"
+    );
+    check_offset!(
+        layout,
+        RawSwupdateRequest,
+        disable_store_swu,
+        "offsetof_swupdate_request_disable_store_swu"
+    );
 }
 
 #[test]

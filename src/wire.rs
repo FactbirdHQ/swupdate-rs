@@ -457,10 +457,7 @@ mod tests {
 
     #[test]
     fn progress_msg_packed_size() {
-        assert_eq!(
-            mem::size_of::<RawProgressMsg>(),
-            PROGRESS_MSG_SIZE_PACKED
-        );
+        assert_eq!(mem::size_of::<RawProgressMsg>(), PROGRESS_MSG_SIZE_PACKED);
     }
 
     #[test]
