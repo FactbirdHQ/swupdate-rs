@@ -183,47 +183,91 @@ pub enum ProgressEvent {
     Idle,
 }
 
+/// Intermediate representation with all fields extracted from wire format.
+/// Used to share parsing logic between packed and unpacked layouts.
+pub(crate) struct ProgressFields {
+    pub status: u32,
+    pub dwl_percent: u32,
+    pub dwl_bytes: u64,
+    pub nsteps: u32,
+    pub cur_step: u32,
+    pub cur_percent: u32,
+    pub cur_image: String,
+    pub hnd_name: String,
+    pub info: String,
+}
+
+impl From<&wire::RawProgressMsg> for ProgressFields {
+    fn from(raw: &wire::RawProgressMsg) -> Self {
+        // Block-scope copies required for packed struct field access
+        let info_len = ({ raw.infolen } as usize).min(wire::PRINFOSIZE);
+        Self {
+            status: { raw.status },
+            dwl_percent: { raw.dwl_percent },
+            dwl_bytes: { raw.dwl_bytes },
+            nsteps: { raw.nsteps },
+            cur_step: { raw.cur_step },
+            cur_percent: { raw.cur_percent },
+            cur_image: wire::cstr_from_bytes(&raw.cur_image),
+            hnd_name: wire::cstr_from_bytes(&raw.hnd_name),
+            info: wire::cstr_from_bytes(&raw.info[..info_len]),
+        }
+    }
+}
+
+impl From<&wire::RawProgressMsgUnpacked> for ProgressFields {
+    fn from(raw: &wire::RawProgressMsgUnpacked) -> Self {
+        let info_len = (raw.infolen as usize).min(wire::PRINFOSIZE);
+        Self {
+            status: raw.status,
+            dwl_percent: raw.dwl_percent,
+            dwl_bytes: raw.dwl_bytes,
+            nsteps: raw.nsteps,
+            cur_step: raw.cur_step,
+            cur_percent: raw.cur_percent,
+            cur_image: wire::cstr_from_bytes(&raw.cur_image),
+            hnd_name: wire::cstr_from_bytes(&raw.hnd_name),
+            info: wire::cstr_from_bytes(&raw.info[..info_len]),
+        }
+    }
+}
+
 impl ProgressEvent {
-    /// Convert from a raw progress message.
+    /// Convert from a packed raw progress message (swupdate >= 2025.12).
     pub(crate) fn from_raw(raw: &wire::RawProgressMsg) -> Self {
-        // Access packed fields by copying to locals
-        let status = { raw.status };
-        let dwl_percent = { raw.dwl_percent };
-        let dwl_bytes = { raw.dwl_bytes };
-        let nsteps = { raw.nsteps };
-        let cur_step = { raw.cur_step };
-        let cur_percent = { raw.cur_percent };
-        let infolen = { raw.infolen };
+        Self::from_fields(ProgressFields::from(raw))
+    }
 
-        let image = wire::cstr_from_bytes(&raw.cur_image);
-        let handler = wire::cstr_from_bytes(&raw.hnd_name);
-        let info_len = (infolen as usize).min(wire::PRINFOSIZE);
-        let info = wire::cstr_from_bytes(&raw.info[..info_len]);
+    /// Convert from an unpacked raw progress message (swupdate <= 2025.05).
+    pub(crate) fn from_raw_unpacked(raw: &wire::RawProgressMsgUnpacked) -> Self {
+        Self::from_fields(ProgressFields::from(raw))
+    }
 
-        match wire::RecoveryStatus::from_u32(status) {
+    fn from_fields(f: ProgressFields) -> Self {
+        match wire::RecoveryStatus::from_u32(f.status) {
             Some(wire::RecoveryStatus::Idle) => Self::Idle,
             Some(wire::RecoveryStatus::Start) => Self::Started,
             Some(wire::RecoveryStatus::Download) => Self::Downloading {
-                percent: dwl_percent,
-                bytes_total: dwl_bytes,
+                percent: f.dwl_percent,
+                bytes_total: f.dwl_bytes,
             },
             Some(wire::RecoveryStatus::Run | wire::RecoveryStatus::Progress) => Self::Installing {
-                step: cur_step,
-                total_steps: nsteps,
-                percent: cur_percent,
-                image,
-                handler,
+                step: f.cur_step,
+                total_steps: f.nsteps,
+                percent: f.cur_percent,
+                image: f.cur_image,
+                handler: f.hnd_name,
             },
             Some(wire::RecoveryStatus::Success | wire::RecoveryStatus::Done) => Self::Success,
-            Some(wire::RecoveryStatus::Failure) => Self::Failed(info),
+            Some(wire::RecoveryStatus::Failure) => Self::Failed(f.info),
             Some(wire::RecoveryStatus::Subprocess) => Self::Installing {
-                step: cur_step,
-                total_steps: nsteps,
-                percent: cur_percent,
-                image,
-                handler,
+                step: f.cur_step,
+                total_steps: f.nsteps,
+                percent: f.cur_percent,
+                image: f.cur_image,
+                handler: f.hnd_name,
             },
-            None => Self::Failed(format!("unknown status: {status}")),
+            None => Self::Failed(format!("unknown status: {}", f.status)),
         }
     }
 
