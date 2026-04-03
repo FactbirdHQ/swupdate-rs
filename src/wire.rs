@@ -122,9 +122,36 @@ impl RecoveryStatus {
 // plain i32/u32 fields in the repr(C) structs.
 
 // ---------------------------------------------------------------------------
-// progress_msg — matches C struct with __attribute__((__packed__))
+// progress_msg — two layouts depending on swupdate version
+//
+// swupdate >= 2025.12: struct is __attribute__((__packed__)) → 2408 bytes
+// swupdate <= 2025.05: struct is unpacked (natural alignment) → 2416 bytes
+// The __packed__ attribute was added upstream in commit 485fd2be (June 2025)
+// without bumping PROGRESS_API_VERSION.
 // ---------------------------------------------------------------------------
 
+pub const PROGRESS_MSG_SIZE_PACKED: usize = 2408;
+pub const PROGRESS_MSG_SIZE_UNPACKED: usize = 2416;
+
+/// Progress message layout, determined by the installed swupdate version.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ProgressLayout {
+    /// swupdate >= 2025.12: `__attribute__((__packed__))`, 2408 bytes
+    Packed,
+    /// swupdate <= 2025.05: natural alignment, 2416 bytes
+    Unpacked,
+}
+
+impl ProgressLayout {
+    pub fn msg_size(self) -> usize {
+        match self {
+            Self::Packed => PROGRESS_MSG_SIZE_PACKED,
+            Self::Unpacked => PROGRESS_MSG_SIZE_UNPACKED,
+        }
+    }
+}
+
+/// Packed progress message (swupdate >= 2025.12).
 #[derive(FromBytes, IntoBytes, Immutable, KnownLayout, Clone)]
 #[repr(C, packed)]
 pub struct RawProgressMsg {
@@ -142,7 +169,35 @@ pub struct RawProgressMsg {
     pub info: [u8; PRINFOSIZE],
 }
 
-const _: () = assert!(mem::size_of::<RawProgressMsg>() == 2408);
+const _: () = assert!(mem::size_of::<RawProgressMsg>() == PROGRESS_MSG_SIZE_PACKED);
+
+/// Unpacked progress message (swupdate <= 2025.05).
+///
+/// Identical fields but `repr(C)` — the compiler inserts 4 bytes of alignment
+/// padding before `dwl_bytes` (u64) and 4 bytes of tail padding, totalling
+/// 2416 bytes on the wire.
+#[derive(FromBytes, IntoBytes, Immutable, KnownLayout, Clone)]
+#[repr(C)]
+pub struct RawProgressMsgUnpacked {
+    pub apiversion: u32,
+    pub status: u32,
+    pub dwl_percent: u32,
+    /// Alignment padding before dwl_bytes (u64 requires 8-byte alignment).
+    pub _pad_align: u32,
+    pub dwl_bytes: u64,
+    pub nsteps: u32,
+    pub cur_step: u32,
+    pub cur_percent: u32,
+    pub cur_image: [u8; 256],
+    pub hnd_name: [u8; 64],
+    pub source: u32,
+    pub infolen: u32,
+    pub info: [u8; PRINFOSIZE],
+    /// Tail padding to match C struct size (8-byte alignment of overall struct).
+    pub _pad_tail: u32,
+}
+
+const _: () = assert!(mem::size_of::<RawProgressMsgUnpacked>() == PROGRESS_MSG_SIZE_UNPACKED);
 
 // ---------------------------------------------------------------------------
 // progress_connect_ack
@@ -401,8 +456,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn progress_msg_size() {
-        assert_eq!(mem::size_of::<RawProgressMsg>(), 2408);
+    fn progress_msg_packed_size() {
+        assert_eq!(mem::size_of::<RawProgressMsg>(), PROGRESS_MSG_SIZE_PACKED);
+    }
+
+    #[test]
+    fn progress_msg_unpacked_size() {
+        assert_eq!(
+            mem::size_of::<RawProgressMsgUnpacked>(),
+            PROGRESS_MSG_SIZE_UNPACKED
+        );
     }
 
     #[test]

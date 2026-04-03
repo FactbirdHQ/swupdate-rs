@@ -6,7 +6,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "swupdate_status.h"
+#include "../swupdate_status.h"
 
 #define PRINFOSIZE	2048
 
